@@ -2,33 +2,18 @@
   (:require
     [clojure.string :as str]))
 
-(defn rank-hand
-  [hand]
-  (let [number-of-equals (vals (frequencies hand))]
-    (cond
-      (some #{5} number-of-equals) 10
-      (some #{4} number-of-equals) 9
-      (= [2 3] (sort number-of-equals)) 8
-      (some #{3} number-of-equals) 7
-      (= [1 2 2] (sort number-of-equals)) 6
-      (= [1 1 1 2] (sort number-of-equals)) 5
-      (= [1 1 1 1 1] (sort number-of-equals)) 4
-      )))
-
-(defn rank-hand-2
-  [hand]
-  (let [raw-frequencies (frequencies hand)
-        number-of-equals (reverse (sort (vals (dissoc raw-frequencies \J))))
-        number-of-equals (cons (+ (or (first number-of-equals) 0) (raw-frequencies \J 0)) (rest number-of-equals))]
-    (cond
-      (some #{5} number-of-equals) 10
-      (some #{4} number-of-equals) 9
-      (= [3 2] number-of-equals) 8
-      (some #{3} number-of-equals) 7
-      (= [2 2 1] number-of-equals) 6
-      (= [2 1 1 1] number-of-equals) 5
-      (= [1 1 1 1 1] number-of-equals) 4
-      )))
+(defn rank-frequencies
+  [freq]
+  (cond
+    (some #{5} freq) 10
+    (some #{4} freq) 9
+    (= [3 2] freq) 8
+    (some #{3} freq) 7
+    (= [2 2 1] freq) 6
+    (= [2 1 1 1] freq) 5
+    (= [1 1 1 1 1] freq) 4
+    )
+  )
 
 (def value {
             \2 2
@@ -46,36 +31,37 @@
             \A 14
             })
 
-(defn part1
-  [input]
+(defn solve
+  [input rank-hand]
   (reduce
     +
     (map-indexed
-      (fn [i [_ _ bid]]
+      (fn [i [_ bid]]
         (* (inc i) (parse-long bid))
         )
-      (sort (map
-              (comp
-                (fn [[hand bid]]
-                  [(rank-hand hand) (mapv value hand) bid]
-                  )
-                #(str/split % #" "))
-              (str/split-lines input)))))
+      (sort-by
+        #(rank-hand (first %))
+        (map
+          #(str/split % #" ")
+          (str/split-lines input)))))
+  )
+
+(defn part1
+  [input]
+  (solve
+    input
+    (fn [hand]
+      [(rank-frequencies (reverse (sort (vals (frequencies hand))))) (mapv value hand)]
+      ))
   )
 
 (defn part2
   [input]
-  (reduce
-    +
-    (map-indexed
-      (fn [i [_ _ bid]]
-        (* (inc i) (parse-long bid))
-        )
-      (sort (map
-              (comp
-                (fn [[hand bid]]
-                  [(rank-hand-2 hand) (mapv (assoc value \J 0) hand) bid]
-                  )
-                #(str/split % #" "))
-              (str/split-lines input)))))
+  (solve
+    input
+    (fn [hand]
+      (let [raw-frequencies (frequencies hand)
+            number-of-equals (reverse (sort (vals (dissoc raw-frequencies \J))))]
+        [(rank-frequencies (cons (+ (or (first number-of-equals) 0) (raw-frequencies \J 0)) (rest number-of-equals))) (mapv (assoc value \J 0) hand)])
+      ))
   )
