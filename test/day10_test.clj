@@ -35,3 +35,5 @@ L--J.L7...LJS7F-7L7.
 
 ;; :N 325
 ;; :S crash
+
+;; Some people used even-odd to decide if it was inside or not https://en.wikipedia.org/wiki/Point_in_polygon.
